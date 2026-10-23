@@ -13,7 +13,7 @@ Création de la classe Signal utilisée durant l'intégralité de ce cours
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sounddevice as sd
+#import sounddevice as sd
 
 class Signal:
     
@@ -243,7 +243,7 @@ class Signal:
             None
         """
 
-        sd.play(self.samples(0, duration), self.sampling_frequency)
-        sd.wait()
+        #sd.play(self.samples(0, duration), self.sampling_frequency)
+        #sd.wait()
         
     
