@@ -12,16 +12,25 @@ def new_signal(tag):
     axe_t= np.arange(len(tag_column))
     return Signal(lambda t: np.interp(t, axe_t, tag_column), 1),tag_column
 
-def spectre(tag_column):
+def spectrum(tag_column):
     n=len(tag_column)
     Amp=np.abs(np.fft.fft(tag_column))/n
     freqs =np.fft.fftfreq(n,1)
     freq_max =np.max(freqs)
     plt.xlim(-freq_max,freq_max)
-    plt.stem(freqs,np.abs(Amp),markerfmt=" ", basefmt=" ")
+    plt.grid(True)
+    plt.stem(freqs,np.abs(Amp))
     plt.show()
 
-#functions to get stats
+def reconstruct_signal(tag_column,nb_harmonics):
+    Amp=np.fft.fft(tag_column)
+    axe_t= np.arange(nb_harmonics)
+    reconstructed_signal=np.real(np.fft.ifft(Amp,nb_harmonics))
+    plt.figure(figsize=(10, 4))
+    plt.plot(axe_t,reconstructed_signal)
+    plt.grid(True)
+    plt.show()
+
 def get_max_value(tag):
     return data[tag].max()
 
@@ -39,8 +48,13 @@ def get_ecart_type_value(tag):
 
 #tests
 Tmax,tag_Tmax=new_signal("tmax")
-Tmax.plot(0,end_of_data)
-spectre(tag_Tmax)
+#Tmax.plot(0,end_of_data)
+#spectrum(tag_Tmax)
+reconstruct_signal(tag_Tmax,100)
+reconstruct_signal(tag_Tmax,500)
+reconstruct_signal(tag_Tmax,1000)
+print("tag lenght :",len(tag_Tmax))
+reconstruct_signal(tag_Tmax,len(tag_Tmax))
 
 print(f"Neige maximale : {get_max_value('snow')}")
 print(f"Pression minimale : {get_min_value('pres')}")
