@@ -7,10 +7,12 @@ from my_signal_td3 import Signal
 data = pd.read_csv("strasbourg_entzheim.csv",encoding="utf-8") 
 end_of_data=len(data)
 
-def new_signal(tag):
+def new_signal(tag,pas_echantionnage=1):
     tag_column=data[tag].interpolate().to_numpy()
-    axe_t= np.arange(len(tag_column))
-    return Signal(lambda t: np.interp(t, axe_t, tag_column), 1),tag_column
+    if pas_echantionnage > 1:
+        tag_column=tag_column[::pas_echantionnage]
+    axe_t= np.arange(len(tag_column))*pas_echantionnage
+    return tag_column,axe_t
 
 #Affiche le spectre en bilatéral
 def spectrum_bilateral(tag_column):
@@ -95,8 +97,9 @@ def filtrePH(e, fc):
 
 
 #tests
-Tmax,list_Tmax=new_signal("tmax")
-# Tmax.plot(0,end_of_data)
+list_Tmax,axe_t=new_signal("tmax",500)
+plt.grid(True)
+plt.plot(axe_t,list_Tmax)
 # rectructruct_signal(tag_Tmax,100)
 # rectructruct_signal(tag_Tmax,500)
 # rectructruct_signal(tag_Tmax,1000)
