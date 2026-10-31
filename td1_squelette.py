@@ -20,10 +20,6 @@ def spectrum_bilateral(tag_column):
     freq_max =np.max(freq)
 
     return freq, amp
-    plt.xlim(-freq_max,freq_max)
-    plt.grid(True)
-    plt.stem(freq, amp, markerfmt=" ")
-    plt.show()
 
 
 #Affiche le spectre en unilatéral
