@@ -4,14 +4,14 @@ import pandas as pd
 from my_signal_td3 import Signal 
 
 #read the csv file
-data = pd.read_csv("strasbourg_entzheim.csv",encoding="utf-8") 
-end_of_data=len(data)
+data = pd.read_csv("strasbourg_entzheim.csv", encoding="utf-8")
+data["time"] = pd.to_datetime(data["time"])
 
-def new_signal(tag,pas_echantionnage=1):
-    tag_column=data[tag].interpolate().to_numpy()
-    if pas_echantionnage > 1:
-        tag_column=tag_column[::pas_echantionnage]
-    axe_t= np.arange(len(tag_column))*pas_echantionnage
+#select the data to create a numpy array
+def new_signal(tag, pas=1, annees=(2014, 2024)):
+    years = data[data["time"].dt.year.between(*annees)]
+    tag_column = years[tag].interpolate().to_numpy()[::pas]
+    axe_t =np.arange(len(tag_column)) * pas
     return tag_column,axe_t
 
 #Affiche le spectre en bilatéral
@@ -97,7 +97,7 @@ def filtrePH(e, fc):
 
 
 #tests
-list_Tmax,axe_t=new_signal("tmax",500)
+list_Tmax,axe_t=new_signal("tmax")
 plt.grid(True)
 plt.plot(axe_t,list_Tmax)
 # rectructruct_signal(tag_Tmax,100)
