@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+#import mathplotlib.dates as mdates
 import pandas as pd
 from my_signal_td3 import Signal 
 
@@ -8,18 +9,19 @@ data = pd.read_csv("strasbourg_entzheim.csv", encoding="utf-8")
 data["time"] = pd.to_datetime(data["time"])
 
 #select the data to create a numpy array
+#and create a numpy array with the time column
 def new_signal(tag, pas=1, annees=(2014, 2024)):
     years = data[data["time"].dt.year.between(*annees)]
     tag_column = years[tag].interpolate().to_numpy()[::pas]
-    axe_t =np.arange(len(tag_column)) * pas
-    return tag_column,axe_t
+    dates=years["time"].interpolate().to_numpy()[::pas]
+    return tag_column,dates
+
 
 #Affiche le spectre en bilatéral
 def spectrum_bilateral(tag_column):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
     freq =np.fft.fftfreq(n,1)
-    freq_max =np.max(freq)
 
     return freq, amp
 
@@ -29,7 +31,6 @@ def spectrum_unilateral(tag_column):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
     freq =np.fft.fftfreq(n,1)
-    freq_max =np.max(freq)
 
     freq = freq[:len(freq)//2+1]
     amp = amp[:len(amp)//2+1]
@@ -45,20 +46,20 @@ def rectructruct_signal(tag_column,nb_harmonique):
     signal_recontruit=np.real(np.fft.ifft(Amp,nb_harmonique))
     return axe_t, signal_recontruit
 
-def get_max_value(tag):
-    return data[tag].max()
+def get_max_value(tag,pas=1):
+    return data[tag].iloc[::pas].max()
 
-def get_min_value(tag):
-    return data[tag].min()
+def get_min_value(tag,pas=1):
+    return data[tag].iloc[::pas].min()
 
-def get_mean_value(tag):
-    return data[tag].mean()
+def get_mean_value(tag,pas=1):
+    return data[tag].iloc[::pas].mean()
 
-def get_variance_value(tag):
-    return data[tag].var()
+def get_variance_value(tag,pas=1):
+    return data[tag].iloc[::pas].var()
 
-def get_ecart_type_value(tag):
-    return data[tag].std(ddof=0)
+def get_ecart_type_value(tag,pas=1):
+    return data[tag].iloc[::pas].std(ddof=0)
 
 def SerieF (t):
     #Par lecture graphique, création de la liste [freq, amp] avec 1 harmonique grâce au  spectre unilatéral
@@ -99,6 +100,8 @@ def filtrePH(e, fc):
 #tests
 list_Tmax,axe_t=new_signal("tmax")
 plt.grid(True)
+plt.xlabel("dates")
+plt.ylabel("T max")
 plt.plot(axe_t,list_Tmax)
 # rectructruct_signal(tag_Tmax,100)
 # rectructruct_signal(tag_Tmax,500)
@@ -126,10 +129,14 @@ ax1.plot(a, signal, color="r")
 ax1.plot(temp, signal_FiltrePB2, "--", label="Fc à 0.006Hz", color="b")
 ax1.plot(temp, signal_FiltrePB1, "--", label="Fc à 0.003Hz", color="orange")
 ax1.plot(temp, signal_FiltrePB0, ":", label="Fc à 0.001Hz", color="g")
-ax1.set_xlabel("Temps en jour")
+ax1.set_xlabel("dates")
 ax1.set_ylabel("T max")
 
-ax2.set_xlim(-freq_max,freq_max)
+#pour spectre unilatéral:
+ax2.set_xlim(0,freq_max)
+#pour spectre bilatéral:
+#ax2.set_xlim(-freq_max,freq_max)
+
 ax2.stem(freq, amp, markerfmt="x")
 ax2.stem(freq0, amp0, markerfmt="x")
 ax2.stem(freq1, amp1, markerfmt="x")
@@ -143,8 +150,8 @@ plt.show()
 
 
 
-# print(f"Neige maximale : {get_max_value('snow')}")
-# print(f"Pression minimale : {get_min_value('pres')}")
-# print(f"Pression moyenne : {get_mean_value('pres')}")
-# print(f"Variance pour la vitesse du vent : {get_variance_value('wspd')}")
-# print(f"Ecart type pour la la vitesse du vent : {get_ecart_type_value('wspd')}")
+print(f"Neige maximale : {get_max_value('snow',1)}")
+print(f"Pression minimale : {get_min_value('pres',1)}")
+print(f"Pression moyenne : {get_mean_value('pres',3)}")
+print(f"Variance pour la vitesse du vent : {get_variance_value('wspd')}")
+print(f"Ecart type pour la la vitesse du vent : {get_ecart_type_value('wspd',2)}")
