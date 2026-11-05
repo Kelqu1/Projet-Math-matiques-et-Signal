@@ -100,7 +100,7 @@ def filtrePH(e, fc):
 #tests
 list_Tmax,axe_t=new_signal("tmax")
 plt.grid(True)
-plt.xlabel("dates")
+plt.xlabel("Temps (année)")
 plt.ylabel("T max")
 plt.plot(axe_t,list_Tmax)
 # rectructruct_signal(tag_Tmax,100)
@@ -129,7 +129,7 @@ ax1.plot(a, signal, color="r")
 ax1.plot(temp, signal_FiltrePB2, "--", label="Fc à 0.006Hz", color="b")
 ax1.plot(temp, signal_FiltrePB1, "--", label="Fc à 0.003Hz", color="orange")
 ax1.plot(temp, signal_FiltrePB0, ":", label="Fc à 0.001Hz", color="g")
-ax1.set_xlabel("dates")
+ax1.set_xlabel("Temps (année)")
 ax1.set_ylabel("T max")
 
 #pour spectre unilatéral:
