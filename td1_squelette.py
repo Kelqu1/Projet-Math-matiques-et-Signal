@@ -32,7 +32,7 @@ def spectrum_unilateral(tag_column,pas=1):
     amp=np.abs(np.fft.fft(tag_column))/n
     freq =np.fft.fftfreq(n,d=pas)
 
-    freq = freq[:len(freq)//2+1]
+    freq = np.abs(freq[:len(freq)//2+1])
     amp = amp[:len(amp)//2+1]
     amp[1:] *= 2
 
@@ -42,8 +42,10 @@ def spectrum_unilateral(tag_column,pas=1):
 
 def rectructruct_signal(tag_column,nb_harmonique):
     Amp=np.fft.rfft(tag_column)
-    Amp[nb_harmonique+1:]=0
-    signal_recontruit=np.fft.irfft(Amp,len(tag_column))
+    idx = np.argsort(np.abs(Amp))[-nb_harmonique:]
+    amp_filt = np.zeros_like(Amp)
+    amp_filt[idx] = Amp[idx]
+    signal_recontruit=np.fft.irfft(amp_filt,len(tag_column))
     return signal_recontruit
 
 
@@ -106,11 +108,31 @@ def filtrePH(e, fc):
 
 #tests
 list_Tmax,axe_t=new_signal("tmax",1)
+
+#Q1:
 plt.figure('représentation temporelle de Tmax')
-plt.grid(True)
+plt.grid()
 plt.xlabel("Temps (année)")
-plt.ylabel("T max")
+plt.ylabel("T max (°C)")
 plt.plot(axe_t,list_Tmax)
+plt.show()
+
+#Q2
+plt.figure("spectre de Tmax")
+freq, amp=spectrum_unilateral(list_Tmax)
+plt.grid()
+plt.stem(freq,amp,markerfmt="x")
+plt.xlabel("fréquences du signal ")
+plt.ylabel("amplitudes")
+plt.show()
+
+plt.figure("signal reconstruit")
+reconstr=rectructruct_signal(list_Tmax,5)
+plt.xlabel("Temps (année)")
+plt.ylabel("T max (°C)")
+plt.plot(axe_t,reconstr)
+plt.show()
+
 # rectructruct_signal(tag_Tmax,100)
 # rectructruct_signal(tag_Tmax,500)
 # rectructruct_signal(tag_Tmax,1000)
@@ -119,8 +141,61 @@ plt.plot(axe_t,list_Tmax)
 # spectrum_bilateral(tag_Tmax)
 # spectrum_unilateral(tag_Tmax)
 
+#Q3:
+plt.figure("représentation de signaux sous échantillonnés")
+plt.plot(axe_t,list_Tmax,alpha=0.5,label="Te=1")
+
+list_sous100,axe_T=new_signal("tmax",100)
+plt.plot(axe_T,list_sous100,linewidth=3,color="#9932CC",label="Te=100")
+
+list_sous365,axe_T365=new_signal("tmax",365)
+plt.plot(axe_T365,list_sous365,linewidth=3,color='green',label="Te=365")
+
+list_sous500,axe_T5=new_signal("tmax",500)
+plt.plot(axe_T5,list_sous500,linewidth=3,color="#FF7F50",label="Te=500")
+
+plt.xlabel("Temps (année)")
+plt.ylabel("T max selon l'échantillonnage (°C)")
+
+plt.legend()
+plt.show()
+
+
+fig, (ax1, ax2,ax3,ax4) = plt.subplots(4,1,constrained_layout=True,num="sepectre sous échantionnage")
+freq1,spectre1 =spectrum_unilateral(list_Tmax)
+ax1.set_xlim(-0.0001,0.02)
+ax1.set_ylim(-0.1,20)
+ax1.stem(freq1, spectre1, markerfmt="x",label="signal avec Te=1")
+
+freq100,spectre100 =spectrum_unilateral(list_sous100,100)
+ax2.set_xlim(-0.0001,0.02)
+ax2.set_ylim(-0.1,20)
+ax2.stem(freq100, spectre100, markerfmt="x",label="signal avec Te=100")
+
+freq365,spectre365 =spectrum_unilateral(list_sous365,365)
+ax3.set_xlim(-0.0001,0.02)
+ax3.set_ylim(-0.1,20)
+ax3.stem(freq365, spectre365, markerfmt="x",label="signal avec Te=365")
+
+freq500,spectre500 =spectrum_unilateral(list_sous500,500)
+ax4.xlabel("frequences")
+ax4.set_xlim(-0.0001,0.02)
+ax4.set_ylim(-0.1,20)
+ax4.stem(freq500, spectre500, markerfmt="x",label="signal avec Te=500")
+
+ax1.grid(which="both")
+ax2.grid(which="both")
+ax3.grid(which="both")
+ax4.grid(which="both")
+ax1.legend()
+ax2.legend()
+ax3.legend()
+ax4.legend()
+plt.show()
+
+#Q5
 plt.figure("Autocorrélation de Tmax")
-plt.grid(True)
+plt.grid()
 plt.xlabel("Décalage (jours)")
 plt.ylabel("Autocorrélation")
 corelation_Tmax,lags=auto_correlate(list_Tmax)
