@@ -18,19 +18,19 @@ def new_signal(tag, pas=1, annees=(2014, 2024)):
 
 
 #Affiche le spectre en bilatéral
-def spectrum_bilateral(tag_column):
+def spectrum_bilateral(tag_column,pas=1):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
-    freq =np.fft.fftfreq(n,1)
+    freq =np.fft.fftfreq(n,d=pas)
 
     return freq, amp
 
 
 #Affiche le spectre en unilatéral
-def spectrum_unilateral(tag_column):
+def spectrum_unilateral(tag_column,pas=1):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
-    freq =np.fft.fftfreq(n,1)
+    freq =np.fft.fftfreq(n,d=pas)
 
     freq = freq[:len(freq)//2+1]
     amp = amp[:len(amp)//2+1]
@@ -41,10 +41,17 @@ def spectrum_unilateral(tag_column):
 
 
 def rectructruct_signal(tag_column,nb_harmonique):
-    Amp=np.fft.fft(tag_column)
-    axe_t= np.arange(nb_harmonique)
-    signal_recontruit=np.real(np.fft.ifft(Amp,nb_harmonique))
-    return axe_t, signal_recontruit
+    Amp=np.fft.rfft(tag_column)
+    Amp[nb_harmonique+1:]=0
+    signal_recontruit=np.fft.irfft(Amp,len(tag_column))
+    return signal_recontruit
+
+
+def auto_correlate(tag_collum):
+    centrered = tag_collum - np.mean(tag_collum)
+    correlation= np.correlate(centrered,centrered,mode="full")[len(tag_collum)-1:]
+    axe_t = np.arange(len(correlation))
+    return correlation,axe_t
 
 def get_max_value(tag,pas=1):
     return data[tag].iloc[::pas].max()
@@ -98,7 +105,8 @@ def filtrePH(e, fc):
 
 
 #tests
-list_Tmax,axe_t=new_signal("tmax")
+list_Tmax,axe_t=new_signal("tmax",1)
+plt.figure('représentation temporelle de Tmax')
 plt.grid(True)
 plt.xlabel("Temps (année)")
 plt.ylabel("T max")
@@ -111,8 +119,20 @@ plt.plot(axe_t,list_Tmax)
 # spectrum_bilateral(tag_Tmax)
 # spectrum_unilateral(tag_Tmax)
 
+plt.figure("Autocorrélation de Tmax")
+plt.grid(True)
+plt.xlabel("Décalage (jours)")
+plt.ylabel("Autocorrélation")
+corelation_Tmax,lags=auto_correlate(list_Tmax)
+plt.plot(lags,corelation_Tmax / corelation_Tmax[0])
+
+'''
+j'utilise axe_t à la place de temp pour prendre 
+en compte le facteur de sous-échantionnage
 temp = np.arange(0, len(list_Tmax))
-a, signal = rectructruct_signal(list_Tmax,len(list_Tmax))
+'''
+
+signal = rectructruct_signal(list_Tmax,600)
 signal_FiltrePB0 = filtrePB(signal, 0.001)
 signal_FiltrePB1 = filtrePB(signal, 0.003)
 signal_FiltrePB2 = filtrePB(signal, 0.006)
@@ -123,18 +143,18 @@ freq1, amp1 = spectrum_unilateral(signal_FiltrePB1)
 freq2, amp2 = spectrum_unilateral(signal_FiltrePB2)
 freq_max = np.max(freq)
 
-fig, (ax1, ax2) = plt.subplots(2,1)
-ax1.plot(a, signal, color="r")
-# ax1.plot(temp, SerieF(temp))
-ax1.plot(temp, signal_FiltrePB2, "--", label="Fc à 0.006Hz", color="b")
-ax1.plot(temp, signal_FiltrePB1, "--", label="Fc à 0.003Hz", color="orange")
-ax1.plot(temp, signal_FiltrePB0, ":", label="Fc à 0.001Hz", color="g")
+fig, (ax1, ax2) = plt.subplots(2,1,constrained_layout=True,num="filtrage et spectre")
+ax1.plot(axe_t, signal, color="r")
+# ax1.plot(axe_t, SerieF(temp))
+ax1.plot(axe_t, signal_FiltrePB2, "--", label="Fc à 0.006Hz", color="b")
+ax1.plot(axe_t, signal_FiltrePB1, "--", label="Fc à 0.003Hz", color="orange")
+ax1.plot(axe_t, signal_FiltrePB0, ":", label="Fc à 0.001Hz", color="g")
 ax1.set_xlabel("Temps (année)")
 ax1.set_ylabel("T max")
 
-#pour spectre unilatéral:
+#pour un spectre unilatéral:
 ax2.set_xlim(0,freq_max)
-#pour spectre bilatéral:
+#pour un spectre bilatéral:
 #ax2.set_xlim(-freq_max,freq_max)
 
 ax2.stem(freq, amp, markerfmt="x")
@@ -149,9 +169,8 @@ ax2.legend()
 plt.show()
 
 
-
-print(f"Neige maximale : {get_max_value('snow',1)}")
-print(f"Pression minimale : {get_min_value('pres',1)}")
-print(f"Pression moyenne : {get_mean_value('pres',3)}")
-print(f"Variance pour la vitesse du vent : {get_variance_value('wspd')}")
-print(f"Ecart type pour la la vitesse du vent : {get_ecart_type_value('wspd',2)}")
+#print(f"Neige maximale : {get_max_value('snow',1)}")
+#print(f"Pression minimale : {get_min_value('pres',1)}")
+#print(f"Pression moyenne : {get_mean_value('pres',3)}")
+#print(f"Variance pour la vitesse du vent : {get_variance_value('wspd')}")
+#print(f"Ecart type pour la la vitesse du vent : {get_ecart_type_value('wspd',2)}")
