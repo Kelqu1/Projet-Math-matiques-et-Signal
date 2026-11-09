@@ -105,7 +105,6 @@ def filtrePH(e, fc):
         s.append(A * e[i] + B * e[i-1])
     return s
 
-
 #lecture
 list_Tmax,axe_t=new_signal("tmax",1)
 
@@ -115,6 +114,7 @@ plt.grid()
 plt.xlabel("Temps (année)")
 plt.ylabel("T max (°C)")
 plt.plot(axe_t,list_Tmax)
+plt.savefig("Q1_reprsentation_temporelle.png")
 plt.show()
 
 print(f"Tmax maximale : {get_max_value(list_Tmax)} °C")
@@ -124,27 +124,37 @@ print(f"Variance pour Tmax : {get_variance_value(list_Tmax)} °C²")
 print(f"Ecart type pour Tmax : {get_ecart_type_value(list_Tmax)}°C")
 
 #Q2
-plt.figure("spectre de Tmax")
+ig, (ax1,ax2) = plt.subplots(2,1,constrained_layout=True,num="spectre de Tmax",sharey=True)
 freq, amp=spectrum_unilateral(list_Tmax)
-plt.grid()
-plt.stem(freq,amp,markerfmt="x")
-plt.xlabel("fréquences du signal (1/j)")
-plt.ylabel("amplitudes")
+ax1.stem(freq,amp,markerfmt="x",label="signal sans zoom")
+ax2.stem(freq,amp,markerfmt="x",label="signal avec un zoom")
+
+ax2.set_xlim(-0.0001,0.02)
+ax1.set_xlabel("fréquences du signal (1/j)")
+ax2.set_xlabel("fréquences du signal (1/j)")
+ax2.set_ylabel("amplitudes")
+
+ax1.grid(which="both")
+ax2.grid(which="both")
+ax1.legend()
+ax2.legend()
+
+plt.savefig("Q2_spectre_signal.png")
 plt.show()
 
 fig, (ax1,ax2,ax3) = plt.subplots(3,1,constrained_layout=True,num="signaux recontruits avec n harmoniques",sharex=True,sharey=True)
 
-reconstr5=reconstruct_signal(list_Tmax,5)
+reconstr5=reconstruct_signal(list_Tmax,3)
 ax1.plot(axe_t,list_Tmax,alpha=0.5,label="signal d'origine")
-ax1.plot(axe_t,reconstr5,color="#9932CC",label="nombre d'harmoniques=5")
+ax1.plot(axe_t,reconstr5,color="#9932CC",label="nombre d'harmoniques=3")
 
-reconstr20=reconstruct_signal(list_Tmax,20)
+reconstr10=reconstruct_signal(list_Tmax,10)
 ax2.plot(axe_t,list_Tmax,alpha=0.5,label="signal d'origine")
-ax2.plot(axe_t,reconstr20,color='green',label="nombre d'harmoniques=20")
+ax2.plot(axe_t,reconstr10,color='green',label="nombre d'harmoniques=10")
 
-reconstr40=reconstruct_signal(list_Tmax,40)
+reconstr30=reconstruct_signal(list_Tmax,30)
 ax3.plot(axe_t,list_Tmax,alpha=0.5,label="signal d'origine")
-ax3.plot(axe_t,reconstr40,color="#FF7F50",label="nombre d'harmoniques=40")
+ax3.plot(axe_t,reconstr30,color="#FF7F50",label="nombre d'harmoniques=30")
 
 plt.xlabel("Temps (année)")
 plt.ylabel("T max (°C)")
@@ -155,7 +165,7 @@ ax3.grid(which="both")
 ax1.legend()
 ax2.legend()
 ax3.legend()
-
+plt.savefig("Q2_reconstructions_signal_Tmax.png")
 plt.show()
 
 
@@ -176,8 +186,8 @@ plt.xlabel("Temps (année)")
 plt.ylabel("T max selon l'échantillonnage (°C)")
 
 plt.legend()
+plt.savefig("Q3_sous_echantionnage_temporel.png")
 plt.show()
-
 
 fig, (ax1,ax2,ax3,ax4) = plt.subplots(4,1,constrained_layout=True,num="spectre selon le sous-échantionnage du signal",sharex=True,sharey=True)
 freq1,spectre1 =spectrum_unilateral(list_Tmax)
@@ -195,7 +205,6 @@ ax3.set_ylabel("Amplitudes")
 ax3.axvline(1/365, color="r", ls="--",label="1/365j")
 ax3.stem(freq365, spectre365, markerfmt="x",label="signal avec Te=365")
 
-
 freq500,spectre500 =spectrum_unilateral(list_sous500,500)
 ax4.set_xlim(-0.0001,0.02)
 ax4.set_ylim(-0.1,20)
@@ -210,17 +219,10 @@ ax1.legend()
 ax2.legend()
 ax3.legend()
 ax4.legend()
+plt.savefig("Q3_spectre_sous_echantionnage_temporel.png")
 plt.show()
 
-#Q5
-plt.figure("Autocorrélation de Tmax")
-plt.grid()
-plt.xlabel("Décalage (jours)")
-plt.ylabel("Autocorrélation ")
-corelation_Tmax,lags=auto_correlate(list_Tmax)
-plt.plot(lags,corelation_Tmax / corelation_Tmax[0])
-plt.show()
-
+#Q4
 signal_FiltrePB0 = filtrePB(list_Tmax, 0.001)
 signal_FiltrePB1 = filtrePB(list_Tmax, 0.003)
 signal_FiltrePB2 = filtrePB(list_Tmax, 0.006)
@@ -231,34 +233,58 @@ freq1, amp1 = spectrum_unilateral(signal_FiltrePB1)
 freq2, amp2 = spectrum_unilateral(signal_FiltrePB2)
 freq_max = np.max(freq)
 
-fig, (ax1, ax2) = plt.subplots(2,1,constrained_layout=True,num="filtrage et spectre")
-ax1.plot(axe_t, list_Tmax,alpha=0.5,)
+fig, (ax1, ax2,ax3) = plt.subplots(3,1,constrained_layout=True,num="représentation temporelle après  filtrage passe bas")
+ax1.plot(axe_t, list_Tmax,alpha=0.5,label="signal non filtré")
 # ax1.plot(axe_t, SerieF(temp))
-ax1.plot(axe_t, signal_FiltrePB2, "--", label="Fc à 0.006Hz", color="b")
-ax1.plot(axe_t, signal_FiltrePB1, "--", label="Fc à 0.003Hz", color="orange")
-ax1.plot(axe_t, signal_FiltrePB0, ":", label="Fc à 0.001Hz", color="g")
-ax1.set_xlabel("Temps (année)")
-ax1.set_ylabel("T max")
 
-#pour un spectre unilatéral:
-ax2.set_xlim(0,freq_max)
-#pour un spectre bilatéral:
-#ax2.set_xlim(-freq_max,freq_max)
+ax1.plot(axe_t, list_Tmax,alpha=0.5,label="signal non filtré")
+ax3.plot(axe_t, signal_FiltrePB2, label="signal filtré avec Fc à 0.006Hz", color="b")
 
-ax2.stem(freq, amp, markerfmt="x")
-ax2.stem(freq0, amp0, markerfmt="x")
-ax2.stem(freq1, amp1, markerfmt="x")
-ax2.stem(freq2, amp2, markerfmt="x")
+ax2.plot(axe_t, list_Tmax,alpha=0.5,label="signal non filtré")
+ax2.plot(axe_t, signal_FiltrePB1, label="signal filtré avec Fc à 0.003Hz", color="orange")
+
+ax3.plot(axe_t, list_Tmax,alpha=0.5,label="signal non filtré")
+ax1.plot(axe_t, signal_FiltrePB0, label="signal filtré avec Fc à 0.001Hz", color="g")
+
+ax3.set_ylabel("T max (°C)")
+ax3.set_xlabel("Temps (année)")
 
 ax1.grid(which="both")
 ax2.grid(which="both")
+ax3.grid(which="both")
 ax1.legend()
 ax2.legend()
+ax3.legend()
+plt.savefig("Q4_filtrage_temporel.png")
 plt.show()
 
+fig, (ax1, ax2,ax3,ax4) = plt.subplots(4,1,constrained_layout=True,num="représentation spectrale après un filtrage passe bas",sharex=True,sharey=True)
 
-#print(f"Neige maximale : {get_max_value('snow',1)}")
-#print(f"Pression minimale : {get_min_value('pres',1)}")
-#print(f"Pression moyenne : {get_mean_value('pres',3)}")
-#print(f"Variance pour la vitesse du vent : {get_variance_value('wspd')}")
-#print(f"Ecart type pour la la vitesse du vent : {get_ecart_type_value('wspd',2)}")
+ax1.stem(freq, amp, markerfmt="x",label="signal non filtré")
+ax2.stem(freq2, amp2, markerfmt="x",label="signal filtré avec Fc à 0.006Hz")
+ax3.stem(freq1, amp1, markerfmt="x",label="signal filtré avec Fc à 0.003Hz")
+ax4.stem(freq0, amp0, markerfmt="x",label="signal filtré avec Fc à 0.001Hz")
+
+ax4.set_xlim(-0.0001,0.02)
+
+ax1.grid(which="both")
+ax2.grid(which="both")
+ax3.grid(which="both")
+ax4.grid(which="both")
+
+ax1.legend()
+ax2.legend()
+ax3.legend()
+ax4.legend()
+plt.savefig("Q4_filtrage_spectre.png")
+plt.show()
+
+#Q5
+plt.figure("Autocorrélation de Tmax")
+plt.grid()
+plt.xlabel("Décalage (jours)")
+plt.ylabel("Autocorrélation ")
+corelation_Tmax,lags=auto_correlate(list_Tmax)
+plt.plot(lags,corelation_Tmax / corelation_Tmax[0])
+plt.savefig("Q5_corelation.png")
+plt.show()
