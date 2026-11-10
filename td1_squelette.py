@@ -16,7 +16,7 @@ def new_signal(tag, pas=1, annees=(2014, 2024)):
     return tag_column,dates
 
 
-#Affiche le spectre en bilatéral
+#return the spectrum bilateral of the numpy array
 def spectrum_bilateral(tag_column,pas=1):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
@@ -25,7 +25,7 @@ def spectrum_bilateral(tag_column,pas=1):
     return freq, amp
 
 
-#Affiche le spectre en unilatéral
+#return the spectrum unilateral of the numpy array
 def spectrum_unilateral(tag_column,pas=1):
     n=len(tag_column)
     amp=np.abs(np.fft.fft(tag_column))/n
@@ -38,7 +38,7 @@ def spectrum_unilateral(tag_column,pas=1):
     return freq, amp
 
 
-
+#Reconstructs a signal from its DC and its nb_harmonique strongest harmonics
 def reconstruct_signal(tag_column, nb_harmonique):
     Amp = np.fft.rfft(tag_column)
     idx = np.argsort(np.abs(Amp[1:]))[-nb_harmonique:] + 1
@@ -48,13 +48,14 @@ def reconstruct_signal(tag_column, nb_harmonique):
     signal_reconstruit = np.fft.irfft(amp_filt, len(tag_column))
     return signal_reconstruit
 
-
+#Computes the autocorrelation of a signal and its time axis
 def auto_correlate(tag_collum,pas=1):
     centrered = tag_collum - np.mean(tag_collum)
     correlation= np.correlate(centrered,centrered,mode="full")[len(tag_collum)-1:]
     axe_t = np.arange(len(correlation))*pas
     return correlation,axe_t
 
+#functions to get stats:
 def get_max_value(tag_column):
     return np.max(tag_column)
 
@@ -77,6 +78,7 @@ def SerieF (t):
     phi = np.pi/1.85 #déphasage du signal
     return framp[0][1] + framp[1][1] * np.sin(np.pi * 2 * framp[1][0] * t - phi) + framp[2][1] * np.sin(np.pi * 2 * framp[2][0] * t - phi)
 
+#a PB filter
 def filtrePB(e, fc):
     """
     e : signal d'entrée
@@ -91,6 +93,7 @@ def filtrePB(e, fc):
         s.append(A * e[i] + B * s[i-1])
     return s
 
+#a PH filter
 def filtrePH(e, fc):
     """
     e : signal d'entrée
